@@ -58,7 +58,7 @@ export const RANKS: Record<string, Rank> = {
     name: "Peasant",
     level: 1,
     minXp: 0,
-    maxXp: 500,
+    maxXp: 2000,
     color: "rank-peasant",
     isVip: false,
     privileges: ["Basic Chat Access"]
@@ -66,8 +66,8 @@ export const RANKS: Record<string, Rank> = {
   citizen: {
     name: "Citizen",
     level: 2,
-    minXp: 501,
-    maxXp: 1200,
+    minXp: 2001,
+    maxXp: 4800,
     color: "rank-citizen",
     isVip: false,
     privileges: ["Basic Chat Access", "Join Factions"]
@@ -75,8 +75,8 @@ export const RANKS: Record<string, Rank> = {
   knight: {
     name: "Knight",
     level: 3,
-    minXp: 1201,
-    maxXp: 2500,
+    minXp: 4801,
+    maxXp: 10000,
     color: "rank-knight",
     isVip: false,
     privileges: ["Basic Chat Access", "Join Factions", "Create Petitions"]
@@ -84,8 +84,8 @@ export const RANKS: Record<string, Rank> = {
   baron: {
     name: "Baron",
     level: 4,
-    minXp: 2501,
-    maxXp: 4500,
+    minXp: 10001,
+    maxXp: 18000,
     color: "rank-baron",
     isVip: false,
     privileges: ["Basic Chat Access", "Join Factions", "Create Petitions", "Message Intermediary"]
@@ -93,8 +93,8 @@ export const RANKS: Record<string, Rank> = {
   earl: {
     name: "Earl",
     level: 5,
-    minXp: 4501,
-    maxXp: 8000,
+    minXp: 18001,
+    maxXp: 32000,
     color: "rank-earl",
     isVip: true,
     privileges: ["VIP Chat Access", "Profile Customization", "Royal Decrees (3/month)", "Court Records"]
@@ -102,8 +102,8 @@ export const RANKS: Record<string, Rank> = {
   marquis: {
     name: "Marquis",
     level: 6,
-    minXp: 8001,
-    maxXp: 15000,
+    minXp: 32001,
+    maxXp: 60000,
     color: "rank-marquis",
     isVip: true,
     privileges: ["VIP Chat Access", "Profile Customization", "Royal Decrees (5/month)", "Host Events", "Voting Rights"]
@@ -111,8 +111,8 @@ export const RANKS: Record<string, Rank> = {
   duke: {
     name: "Duke",
     level: 7,
-    minXp: 15001,
-    maxXp: 25000,
+    minXp: 60001,
+    maxXp: 100000,
     color: "rank-duke",
     isVip: true,
     privileges: ["VIP Chat Access", "Profile Customization", "Royal Decrees (7/month)", "Host Events", "Voting Rights", "Royal Chambers Access"]
@@ -120,8 +120,8 @@ export const RANKS: Record<string, Rank> = {
   prince: {
     name: "Prince",
     level: 8,
-    minXp: 25001,
-    maxXp: 50000,
+    minXp: 100001,
+    maxXp: 200000,
     color: "rank-prince",
     isVip: true,
     privileges: ["All VIP Privileges", "Royal Decrees (10/month)", "Kingdom Influence"]
@@ -129,7 +129,7 @@ export const RANKS: Record<string, Rank> = {
   king: {
     name: "King",
     level: 9,
-    minXp: 50001,
+    minXp: 200001,
     maxXp: Infinity,
     color: "rank-king",
     isVip: true,
