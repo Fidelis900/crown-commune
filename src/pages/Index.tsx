@@ -1,18 +1,50 @@
 import { Sidebar } from "@/components/Sidebar";
 import { ChatRoom } from "@/components/ChatRoom";
-import { useKingdomChat } from "@/hooks/useKingdomChat";
+import { useAuth } from "@/hooks/useAuth";
+import { useRealChat } from "@/hooks/useRealChat";
+import { Navigate } from "react-router-dom";
+import { profileToUser, channelToChatChannel, messageToComponentMessage } from "@/utils/dataAdapters";
 import throneRoomBg from "@/assets/throne-room-bg.png";
 
 const Index = () => {
+  const { user, loading: authLoading, signOut } = useAuth();
   const {
-    currentUser,
-    activeChannel,
+    profile,
     channels,
     messages,
+    activeChannel,
+    loading,
     sendMessage,
-    selectChannel,
-    logout
-  } = useKingdomChat();
+    selectChannel
+  } = useRealChat(user?.id);
+
+  // Redirect to auth if not logged in
+  if (!authLoading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading state
+  if (authLoading || loading || !profile || !activeChannel) {
+    return (
+      <div 
+        className="min-h-screen bg-background flex items-center justify-center"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${throneRoomBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="text-primary text-xl">Loading the kingdom...</div>
+      </div>
+    );
+  }
+
+  // Convert database types to component types
+  const currentUser = profileToUser(profile);
+  const adaptedChannels = channels.map(channelToChatChannel);
+  const adaptedActiveChannel = channelToChatChannel(activeChannel);
+  const adaptedMessages = messages.map(messageToComponentMessage);
 
   return (
     <div 
@@ -26,17 +58,17 @@ const Index = () => {
     >
       <Sidebar
         currentUser={currentUser}
-        channels={channels}
+        channels={adaptedChannels}
         activeChannelId={activeChannel.id}
         onChannelSelect={selectChannel}
-        onLogout={logout}
+        onLogout={signOut}
       />
       
       <div className="flex-1 flex flex-col">
         <ChatRoom
-          channel={activeChannel}
+          channel={adaptedActiveChannel}
           currentUser={currentUser}
-          messages={messages}
+          messages={adaptedMessages}
           onSendMessage={sendMessage}
         />
       </div>
