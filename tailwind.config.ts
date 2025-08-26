@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -61,7 +62,37 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				rank: {
+					peasant: 'hsl(var(--rank-peasant))',
+					citizen: 'hsl(var(--rank-citizen))',
+					knight: 'hsl(var(--rank-knight))',
+					baron: 'hsl(var(--rank-baron))',
+					earl: 'hsl(var(--rank-earl))',
+					marquis: 'hsl(var(--rank-marquis))',
+					duke: 'hsl(var(--rank-duke))',
+					prince: 'hsl(var(--rank-prince))',
+					king: 'hsl(var(--rank-king))'
 				}
+			},
+			fontFamily: {
+				serif: ['Crimson Text', 'serif'],
+				display: ['Cinzel', 'serif']
+			},
+			backgroundImage: {
+				'royal-gradient': 'var(--gradient-royal)',
+				'noble-gradient': 'var(--gradient-noble)',
+				'throne-gradient': 'var(--gradient-throne)',
+				'parchment-gradient': 'var(--gradient-parchment)'
+			},
+			boxShadow: {
+				'royal': 'var(--shadow-royal)',
+				'noble': 'var(--shadow-noble)',
+				'elegant': 'var(--shadow-elegant)'
+			},
+			transitionProperty: {
+				'royal': 'var(--transition-royal)',
+				'glow': 'var(--transition-glow)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
