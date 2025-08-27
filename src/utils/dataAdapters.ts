@@ -38,7 +38,7 @@ interface DbMessage {
 }
 
 export const profileToUser = (profile: DbProfile): User => {
-  const rank = RANKS[profile.rank as keyof typeof RANKS] || RANKS.Peasant;
+  const rank = RANKS[profile.rank.toLowerCase() as keyof typeof RANKS] || RANKS.peasant;
   
   return {
     id: profile.user_id,
@@ -71,8 +71,8 @@ export const channelToChatChannel = (channel: DbChannel): ChatChannel => {
 
 export const messageToComponentMessage = (message: DbMessage): ComponentMessage => {
   const rank = message.profiles?.rank ? 
-    RANKS[message.profiles.rank as keyof typeof RANKS] || RANKS.Peasant : 
-    RANKS.Peasant;
+    RANKS[message.profiles.rank.toLowerCase() as keyof typeof RANKS] || RANKS.peasant : 
+    RANKS.peasant;
 
   return {
     id: message.id,
