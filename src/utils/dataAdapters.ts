@@ -54,8 +54,13 @@ export const profileToUser = (profile: DbProfile): User => {
 
 export const channelToChatChannel = (channel: DbChannel): ChatChannel => {
   const getChannelType = (dbType: string, minRankLevel: number): 'public' | 'vip' | 'exclusive' => {
-    if (minRankLevel >= 5) return 'exclusive';
-    if (minRankLevel >= 3) return 'vip';
+    // Check for exclusive royal channels first
+    if (minRankLevel >= 7 || dbType === 'exclusive') return 'exclusive';
+    
+    // VIP channels for Earl+ ranks
+    if (minRankLevel >= 5 || dbType === 'vip') return 'vip';
+    
+    // All other channels are public access
     return 'public';
   };
 
