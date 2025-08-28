@@ -41,29 +41,91 @@ export type Database = {
         }
         Relationships: []
       }
+      direct_message_channels: {
+        Row: {
+          created_at: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           channel_id: string
           content: string
           created_at: string
+          edited_at: string | null
           id: string
           is_decree: boolean
+          is_deleted: boolean | null
+          reply_to_id: string | null
           user_id: string
         }
         Insert: {
           channel_id: string
           content: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           is_decree?: boolean
+          is_deleted?: boolean | null
+          reply_to_id?: string | null
           user_id: string
         }
         Update: {
           channel_id?: string
           content?: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           is_decree?: boolean
+          is_deleted?: boolean | null
+          reply_to_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -72,6 +134,13 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -112,12 +181,69 @@ export type Database = {
         }
         Relationships: []
       }
+      typing_indicators: {
+        Row: {
+          channel_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typing_indicators_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_presence: {
+        Row: {
+          last_seen: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_seen?: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_seen?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_typing_indicators: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_user_presence: {
+        Args: { new_status?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
