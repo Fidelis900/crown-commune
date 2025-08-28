@@ -10,9 +10,13 @@ import {
   Scroll, 
   Settings,
   LogOut,
-  Plus
+  Plus,
+  Menu,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 
 interface SidebarProps {
   currentUser: User;
@@ -29,6 +33,15 @@ export function Sidebar({
   onChannelSelect,
   onLogout 
 }: SidebarProps) {
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const handleChannelSelect = (channelId: string) => {
+    onChannelSelect(channelId);
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  };
   // Categorize channels by purpose and access level
   const publicChannels = channels.filter(c => c.type === 'public' && c.minRankLevel <= 2);
   const knightChannels = channels.filter(c => c.minRankLevel >= 3 && c.minRankLevel <= 4);
@@ -55,8 +68,8 @@ export function Sidebar({
     }
   };
 
-  return (
-    <div className="w-80 h-full bg-sidebar border-r border-sidebar-border flex flex-col">
+  const sidebarContent = (
+    <div className="h-full bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* User Profile */}
       <div className="p-6 border-b border-sidebar-border bg-throne-gradient">
         <div className="space-y-4">
@@ -108,7 +121,7 @@ export function Sidebar({
                   key={channel.id}
                   variant={isActive ? "secondary" : "ghost"}
                   className="w-full justify-start gap-3 h-auto p-3"
-                  onClick={() => onChannelSelect(channel.id)}
+                  onClick={() => handleChannelSelect(channel.id)}
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1 text-left">
@@ -138,7 +151,7 @@ export function Sidebar({
                   key={channel.id}
                   variant={isActive ? "secondary" : "ghost"}
                   className="w-full justify-start gap-3 h-auto p-3"
-                  onClick={() => onChannelSelect(channel.id)}
+                  onClick={() => handleChannelSelect(channel.id)}
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1 text-left">
@@ -169,7 +182,7 @@ export function Sidebar({
                   key={channel.id}
                   variant={isActive ? "secondary" : "ghost"}
                   className="w-full justify-start gap-3 h-auto p-3"
-                  onClick={() => onChannelSelect(channel.id)}
+                  onClick={() => handleChannelSelect(channel.id)}
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1 text-left">
@@ -203,7 +216,7 @@ export function Sidebar({
                   key={channel.id}
                   variant={isActive ? "vip" : "ghost"}
                   className="w-full justify-start gap-3 h-auto p-3 vip-exclusive"
-                  onClick={() => onChannelSelect(channel.id)}
+                  onClick={() => handleChannelSelect(channel.id)}
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1 text-left">
@@ -237,7 +250,7 @@ export function Sidebar({
                   key={channel.id}
                   variant={isActive ? "royal" : "ghost"}
                   className="w-full justify-start gap-3 h-auto p-3"
-                  onClick={() => onChannelSelect(channel.id)}
+                  onClick={() => handleChannelSelect(channel.id)}
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1 text-left">
@@ -278,6 +291,50 @@ export function Sidebar({
           Leave Kingdom
         </Button>
       </div>
+    </div>
+  );
+  
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile trigger button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="fixed top-4 left-4 z-50 md:hidden"
+          onClick={() => setIsOpen(true)}
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+        
+        {/* Mobile overlay */}
+        {isOpen && (
+          <div className="fixed inset-0 z-40 md:hidden">
+            <div 
+              className="absolute inset-0 bg-black/50" 
+              onClick={() => setIsOpen(false)}
+            />
+            <div className="relative w-80 h-full bg-sidebar">
+              {/* Close button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 z-10"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              {sidebarContent}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+  
+  return (
+    <div className="w-80 hidden md:block">
+      {sidebarContent}
     </div>
   );
 }
