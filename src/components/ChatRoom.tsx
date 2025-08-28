@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChatChannel, Message, User } from "@/types";
 import { ChatMessage } from "./ChatMessage";
+import { TypingIndicator } from "./TypingIndicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,12 +14,40 @@ interface ChatRoomProps {
   currentUser: User;
   messages: Message[];
   onSendMessage: (content: string, isDecree?: boolean) => void;
+  // Enhanced features
+  typingUsers?: Array<{ user_id: string; username: string }>;
+  onStartTyping?: () => void;
+  onStopTyping?: () => void;
+  reactions?: Record<string, Array<{
+    emoji: string;
+    count: number;
+    users: string[];
+    hasUserReacted: boolean;
+  }>>;
+  onlineUsers?: Set<string>;
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onToggleReaction?: (messageId: string, emoji: string) => void;
 }
 
-export function ChatRoom({ channel, currentUser, messages, onSendMessage }: ChatRoomProps) {
+export function ChatRoom({ 
+  channel, 
+  currentUser, 
+  messages, 
+  onSendMessage,
+  typingUsers = [],
+  onStartTyping,
+  onStopTyping,
+  reactions = {},
+  onlineUsers = new Set(),
+  onEditMessage,
+  onDeleteMessage,
+  onToggleReaction
+}: ChatRoomProps) {
   const [messageContent, setMessageContent] = useState("");
   const [isDecreeMode, setIsDecreeMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   const canSendDecree = currentUser.isVip && currentUser.decreeCount < currentUser.maxDecrees;
   const isVipChannel = channel.type === 'vip' || channel.type === 'exclusive';
@@ -27,10 +56,32 @@ export function ChatRoom({ channel, currentUser, messages, onSendMessage }: Chat
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleTyping = () => {
+    if (!onStartTyping) return;
+    
+    onStartTyping();
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Stop typing after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      onStopTyping?.();
+    }, 3000);
+  };
+
+  const handleInputChange = (value: string) => {
+    setMessageContent(value);
+    handleTyping();
+  };
+
   const handleSendMessage = () => {
     if (!messageContent.trim()) return;
     
     onSendMessage(messageContent, isDecreeMode);
+    onStopTyping?.();
     setMessageContent("");
     setIsDecreeMode(false);
   };
@@ -79,8 +130,21 @@ export function ChatRoom({ channel, currentUser, messages, onSendMessage }: Chat
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage 
+            key={message.id} 
+            message={message}
+            currentUserId={currentUser.id}
+            reactions={reactions[message.id]}
+            isUserOnline={onlineUsers.has(message.author.id)}
+            onEdit={onEditMessage}
+            onDelete={onDeleteMessage}
+            onToggleReaction={onToggleReaction}
+          />
         ))}
+        
+        {/* Typing Indicator */}
+        <TypingIndicator typingUsers={typingUsers} />
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -103,7 +167,7 @@ export function ChatRoom({ channel, currentUser, messages, onSendMessage }: Chat
             {isDecreeMode ? (
               <Textarea
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Issue your royal decree..."
                 className="min-h-[80px] font-display"
@@ -111,7 +175,7 @@ export function ChatRoom({ channel, currentUser, messages, onSendMessage }: Chat
             ) : (
               <Input
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder={`Send a message to ${channel.name}...`}
                 className="flex-1"

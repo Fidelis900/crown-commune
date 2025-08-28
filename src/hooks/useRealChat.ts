@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RANKS } from "@/types";
 import { toast } from "sonner";
+import { usePresence } from "./usePresence";
+import { useTypingIndicator } from "./useTypingIndicator";
+import { useMessageReactions } from "./useMessageReactions";
 
 interface Profile {
   id: string;
@@ -31,6 +34,9 @@ interface Message {
   content: string;
   is_decree: boolean;
   created_at: string;
+  edited_at?: string;
+  is_deleted?: boolean;
+  reply_to_id?: string;
   profiles?: {
     username: string;
     rank: string;
@@ -44,6 +50,12 @@ export const useRealChat = (userId: string | undefined) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  
+  // Enhanced features
+  const { presenceList, onlineUsers, setUserStatus } = usePresence(userId);
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(activeChannelId, userId);
+  const messageIds = messages.map(m => m.id);
+  const { reactions, toggleReaction } = useMessageReactions(messageIds, userId);
 
   // Fetch user profile
   useEffect(() => {
@@ -171,6 +183,53 @@ export const useRealChat = (userId: string | undefined) => {
     };
   }, [activeChannelId]);
 
+  const editMessage = async (messageId: string, newContent: string) => {
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ 
+          content: newContent,
+          edited_at: new Date().toISOString()
+        })
+        .eq('id', messageId)
+        .eq('user_id', userId); // Only allow editing own messages
+
+      if (error) {
+        console.error('Error editing message:', error);
+        toast.error('Failed to edit message');
+      } else {
+        toast.success('Message edited');
+      }
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast.error('Failed to edit message');
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_deleted: true })
+        .eq('id', messageId)
+        .eq('user_id', userId); // Only allow deleting own messages
+
+      if (error) {
+        console.error('Error deleting message:', error);
+        toast.error('Failed to delete message');
+      } else {
+        toast.success('Message deleted');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
+    }
+  };
+
   const sendMessage = async (content: string, isDecree = false) => {
     if (!userId || !profile || !activeChannelId) return;
 
@@ -245,6 +304,17 @@ export const useRealChat = (userId: string | undefined) => {
     activeChannelId,
     loading,
     sendMessage,
-    selectChannel
+    selectChannel,
+    editMessage,
+    deleteMessage,
+    // Enhanced features
+    presenceList,
+    onlineUsers,
+    setUserStatus,
+    typingUsers,
+    startTyping,
+    stopTyping,
+    reactions,
+    toggleReaction
   };
 };

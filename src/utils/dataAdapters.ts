@@ -30,6 +30,9 @@ interface DbMessage {
   content: string;
   is_decree: boolean;
   created_at: string;
+  edited_at?: string;
+  is_deleted?: boolean;
+  reply_to_id?: string;
   profiles?: {
     username: string;
     rank: string;
@@ -96,6 +99,9 @@ export const messageToComponentMessage = (message: DbMessage): ComponentMessage 
     timestamp: new Date(message.created_at),
     channelId: message.channel_id,
     isDecree: message.is_decree,
-    isPinned: false // Not implemented yet
+    isPinned: false, // Not implemented yet
+    isDeleted: message.is_deleted || false,
+    editedAt: message.edited_at ? new Date(message.edited_at) : undefined,
+    replyToId: message.reply_to_id || undefined
   };
 };

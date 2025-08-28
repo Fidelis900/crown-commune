@@ -15,7 +15,18 @@ const Index = () => {
     activeChannel,
     loading,
     sendMessage,
-    selectChannel
+    selectChannel,
+    editMessage,
+    deleteMessage,
+    // Enhanced features
+    presenceList,
+    onlineUsers,
+    setUserStatus,
+    typingUsers,
+    startTyping,
+    stopTyping,
+    reactions,
+    toggleReaction
   } = useRealChat(user?.id);
 
   // Redirect to auth if not logged in
@@ -70,6 +81,14 @@ const Index = () => {
           currentUser={currentUser}
           messages={adaptedMessages}
           onSendMessage={sendMessage}
+          typingUsers={typingUsers}
+          onStartTyping={startTyping}
+          onStopTyping={stopTyping}
+          reactions={reactions}
+          onlineUsers={onlineUsers}
+          onEditMessage={editMessage}
+          onDeleteMessage={deleteMessage}
+          onToggleReaction={toggleReaction}
         />
       </div>
     </div>

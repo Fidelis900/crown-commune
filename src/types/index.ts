@@ -30,6 +30,9 @@ export interface Message {
   timestamp: Date;
   isDecree?: boolean;
   isPinned?: boolean;
+  isDeleted?: boolean;
+  editedAt?: Date;
+  replyToId?: string;
 }
 
 export interface ChatChannel {
