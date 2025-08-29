@@ -35,6 +35,7 @@ export function Sidebar({
 }: SidebarProps) {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   const handleChannelSelect = (channelId: string) => {
     onChannelSelect(channelId);
@@ -69,20 +70,34 @@ export function Sidebar({
   };
 
   const sidebarContent = (
-    <div className="h-full bg-sidebar border-r border-sidebar-border flex flex-col">
-      {/* User Profile */}
-      <div className="p-6 border-b border-sidebar-border bg-throne-gradient">
-        <div className="space-y-4">
-          <div className="text-center">
-            <h1 className="font-display font-bold text-2xl text-primary mb-2">
-              Kingdom Chat
-            </h1>
-            <Crown className="w-8 h-8 text-primary mx-auto" />
+    <div className={cn(
+      "h-full bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
+      isCollapsed ? "w-16" : "w-80"
+    )}>
+      {/* Header with toggle */}
+      <div className="p-4 border-b border-sidebar-border bg-throne-gradient flex items-center justify-between">
+        {!isCollapsed && (
+          <div className="flex items-center gap-2">
+            <Crown className="w-6 h-6 text-primary" />
+            <h1 className="font-display font-bold text-lg text-primary">Kingdom Chat</h1>
           </div>
-          
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="text-primary hover:bg-primary/10"
+        >
+          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+        </Button>
+      </div>
+      
+      {/* User Profile */}
+      {!isCollapsed && (
+        <div className="p-4 border-b border-sidebar-border bg-throne-gradient">
           <div className="space-y-3">
             <div className="text-center">
-              <h2 className="font-display font-semibold text-lg">
+              <h2 className="font-display font-semibold text-base">
                 {currentUser.username}
               </h2>
             </div>
@@ -90,7 +105,7 @@ export function Sidebar({
             <RankBadge user={currentUser} showXp className="w-full" />
             
             {currentUser.isVip && (
-              <div className="vip-exclusive p-3 rounded-lg">
+              <div className="vip-exclusive p-2 rounded-lg">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-display font-medium">VIP Status</span>
                   <Crown className="w-4 h-4 text-primary" />
@@ -102,16 +117,32 @@ export function Sidebar({
             )}
           </div>
         </div>
-      </div>
+      )}
+      
+      {/* Collapsed user indicator */}
+      {isCollapsed && (
+        <div className="p-2 border-b border-sidebar-border bg-throne-gradient">
+          <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-primary font-bold text-sm">
+              {currentUser.username.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className={cn(
+        "flex-1 overflow-y-auto space-y-4",
+        isCollapsed ? "p-2" : "p-4"
+      )}>
         {/* Special Channels */}
         {specialChannels.length > 0 && (
           <div className="space-y-2">
-            <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider px-2">
-              Kingdom
-            </h3>
+            {!isCollapsed && (
+              <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider px-2">
+                Kingdom
+              </h3>
+            )}
             {specialChannels.map((channel) => {
               const Icon = getChannelIcon(channel);
               const isActive = channel.id === activeChannelId;
@@ -120,16 +151,22 @@ export function Sidebar({
                 <Button
                   key={channel.id}
                   variant={isActive ? "secondary" : "ghost"}
-                  className="w-full justify-start gap-3 h-auto p-3"
+                  className={cn(
+                    "w-full gap-3 h-auto",
+                    isCollapsed ? "p-2 justify-center" : "p-3 justify-start"
+                  )}
                   onClick={() => handleChannelSelect(channel.id)}
+                  title={isCollapsed ? channel.name : undefined}
                 >
-                  <Icon className="w-4 h-4" />
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{channel.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {channel.description}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{channel.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {channel.description}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </Button>
               );
             })}
@@ -139,9 +176,11 @@ export function Sidebar({
         {/* Public Channels */}
         {publicChannels.length > 0 && (
           <div className="space-y-2">
-            <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider px-2">
-              Public Realms
-            </h3>
+            {!isCollapsed && (
+              <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider px-2">
+                Public Realms
+              </h3>
+            )}
             {publicChannels.map((channel) => {
               const Icon = getChannelIcon(channel);
               const isActive = channel.id === activeChannelId;
@@ -150,16 +189,22 @@ export function Sidebar({
                 <Button
                   key={channel.id}
                   variant={isActive ? "secondary" : "ghost"}
-                  className="w-full justify-start gap-3 h-auto p-3"
+                  className={cn(
+                    "w-full gap-3 h-auto",
+                    isCollapsed ? "p-2 justify-center" : "p-3 justify-start"
+                  )}
                   onClick={() => handleChannelSelect(channel.id)}
+                  title={isCollapsed ? channel.name : undefined}
                 >
-                  <Icon className="w-4 h-4" />
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{channel.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {channel.memberCount} members
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{channel.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {channel.memberCount} members
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </Button>
               );
             })}
@@ -169,10 +214,12 @@ export function Sidebar({
         {/* Knight Channels */}
         {currentUser.rank.level >= 3 && knightChannels.length > 0 && (
           <div className="space-y-2">
-            <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider px-2 flex items-center gap-2">
-              <Sword className="w-3 h-3" />
-              Knight Halls
-            </h3>
+            {!isCollapsed && (
+              <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider px-2 flex items-center gap-2">
+                <Sword className="w-3 h-3" />
+                Knight Halls
+              </h3>
+            )}
             {knightChannels.map((channel) => {
               const Icon = getChannelIcon(channel);
               const isActive = channel.id === activeChannelId;
@@ -181,19 +228,27 @@ export function Sidebar({
                 <Button
                   key={channel.id}
                   variant={isActive ? "secondary" : "ghost"}
-                  className="w-full justify-start gap-3 h-auto p-3"
+                  className={cn(
+                    "w-full gap-3 h-auto",
+                    isCollapsed ? "p-2 justify-center" : "p-3 justify-start"
+                  )}
                   onClick={() => handleChannelSelect(channel.id)}
+                  title={isCollapsed ? channel.name : undefined}
                 >
-                  <Icon className="w-4 h-4" />
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{channel.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {channel.description}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{channel.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {channel.description}
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-secondary/10 border-secondary/50">
-                    Knight+
-                  </Badge>
+                  )}
+                  {!isCollapsed && (
+                    <Badge variant="outline" className="text-xs bg-secondary/10 border-secondary/50">
+                      Knight+
+                    </Badge>
+                  )}
                 </Button>
               );
             })}
@@ -203,10 +258,12 @@ export function Sidebar({
         {/* VIP Channels */}
         {currentUser.isVip && vipChannels.length > 0 && (
           <div className="space-y-2">
-            <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider px-2 flex items-center gap-2">
-              <Crown className="w-3 h-3" />
-              VIP Chambers
-            </h3>
+            {!isCollapsed && (
+              <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider px-2 flex items-center gap-2">
+                <Crown className="w-3 h-3" />
+                VIP Chambers
+              </h3>
+            )}
             {vipChannels.map((channel) => {
               const Icon = getChannelIcon(channel);
               const isActive = channel.id === activeChannelId;
@@ -215,19 +272,27 @@ export function Sidebar({
                 <Button
                   key={channel.id}
                   variant={isActive ? "vip" : "ghost"}
-                  className="w-full justify-start gap-3 h-auto p-3 vip-exclusive"
+                  className={cn(
+                    "w-full gap-3 h-auto vip-exclusive",
+                    isCollapsed ? "p-2 justify-center" : "p-3 justify-start"
+                  )}
                   onClick={() => handleChannelSelect(channel.id)}
+                  title={isCollapsed ? channel.name : undefined}
                 >
-                  <Icon className="w-4 h-4" />
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{channel.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {channel.description}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{channel.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {channel.description}
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-primary/10 border-primary/50">
-                    VIP
-                  </Badge>
+                  )}
+                  {!isCollapsed && (
+                    <Badge variant="outline" className="text-xs bg-primary/10 border-primary/50">
+                      VIP
+                    </Badge>
+                  )}
                 </Button>
               );
             })}
@@ -237,10 +302,12 @@ export function Sidebar({
         {/* Exclusive Channels */}
         {currentUser.rank.level >= 7 && exclusiveChannels.length > 0 && (
           <div className="space-y-2">
-            <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider px-2 flex items-center gap-2">
-              <Crown className="w-3 h-3" />
-              Royal Chambers
-            </h3>
+            {!isCollapsed && (
+              <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider px-2 flex items-center gap-2">
+                <Crown className="w-3 h-3" />
+                Royal Chambers
+              </h3>
+            )}
             {exclusiveChannels.map((channel) => {
               const Icon = getChannelIcon(channel);
               const isActive = channel.id === activeChannelId;
@@ -249,19 +316,27 @@ export function Sidebar({
                 <Button
                   key={channel.id}
                   variant={isActive ? "royal" : "ghost"}
-                  className="w-full justify-start gap-3 h-auto p-3"
+                  className={cn(
+                    "w-full gap-3 h-auto",
+                    isCollapsed ? "p-2 justify-center" : "p-3 justify-start"
+                  )}
                   onClick={() => handleChannelSelect(channel.id)}
+                  title={isCollapsed ? channel.name : undefined}
                 >
-                  <Icon className="w-4 h-4" />
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{channel.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Elite access only
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{channel.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Elite access only
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-primary/10 border-primary/50">
-                    Royal
-                  </Badge>
+                  )}
+                  {!isCollapsed && (
+                    <Badge variant="outline" className="text-xs bg-primary/10 border-primary/50">
+                      Royal
+                    </Badge>
+                  )}
                 </Button>
               );
             })}
@@ -270,25 +345,48 @@ export function Sidebar({
       </div>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-sidebar-border space-y-2">
-        <Button variant="ghost" className="w-full justify-start gap-3" size="sm">
+      <div className={cn(
+        "border-t border-sidebar-border space-y-2",
+        isCollapsed ? "p-2" : "p-4"
+      )}>
+        <Button 
+          variant="ghost" 
+          className={cn(
+            "w-full gap-3",
+            isCollapsed ? "justify-center p-2" : "justify-start"
+          )}
+          size="sm"
+          title={isCollapsed ? "Petitions" : undefined}
+        >
           <Scroll className="w-4 h-4" />
-          Petitions
+          {!isCollapsed && "Petitions"}
         </Button>
         
-        <Button variant="ghost" className="w-full justify-start gap-3" size="sm">
+        <Button 
+          variant="ghost" 
+          className={cn(
+            "w-full gap-3",
+            isCollapsed ? "justify-center p-2" : "justify-start"
+          )}
+          size="sm"
+          title={isCollapsed ? "Settings" : undefined}
+        >
           <Settings className="w-4 h-4" />
-          Settings
+          {!isCollapsed && "Settings"}
         </Button>
         
         <Button 
           variant="outline" 
-          className="w-full justify-start gap-3" 
+          className={cn(
+            "w-full gap-3",
+            isCollapsed ? "justify-center p-2" : "justify-start"
+          )}
           size="sm"
           onClick={onLogout}
+          title={isCollapsed ? "Leave Kingdom" : undefined}
         >
           <LogOut className="w-4 h-4" />
-          Leave Kingdom
+          {!isCollapsed && "Leave Kingdom"}
         </Button>
       </div>
     </div>
@@ -333,7 +431,10 @@ export function Sidebar({
   }
   
   return (
-    <div className="w-80 hidden md:block">
+    <div className={cn(
+      "hidden md:block transition-all duration-300",
+      isCollapsed ? "w-16" : "w-80"
+    )}>
       {sidebarContent}
     </div>
   );
