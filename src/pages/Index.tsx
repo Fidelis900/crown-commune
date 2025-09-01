@@ -1,5 +1,8 @@
 import { Sidebar } from "@/components/Sidebar";
 import { ChatRoom } from "@/components/ChatRoom";
+import { HelpSupportCenter } from "@/components/HelpSupportCenter";
+import { TradingPost } from "@/components/TradingPost";
+import { QuestBoard } from "@/components/QuestBoard";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealChat } from "@/hooks/useRealChat";
 import { Navigate } from "react-router-dom";
@@ -57,6 +60,42 @@ const Index = () => {
   const adaptedActiveChannel = channelToChatChannel(activeChannel);
   const adaptedMessages = messages.map(messageToComponentMessage);
 
+  // Get current channel and determine room type based on raw database type
+  const currentChannel = adaptedChannels.find(c => c.id === activeChannel.id);
+  const dbChannelType = activeChannel.type; // Use database type directly
+  
+  // Render appropriate component based on room type
+  const renderMainContent = () => {
+    // Check by channel name first for specific functionality
+    if (currentChannel?.name === 'Help & Support') {
+      return <HelpSupportCenter />;
+    }
+    if (currentChannel?.name === 'Trading Post') {
+      return <TradingPost />;
+    }
+    if (currentChannel?.name === 'Quest Board') {
+      return <QuestBoard />;
+    }
+    
+    // Default to chat room for all other channels
+    return (
+      <ChatRoom
+        channel={adaptedActiveChannel}
+        currentUser={currentUser}
+        messages={adaptedMessages}
+        onSendMessage={sendMessage}
+        typingUsers={typingUsers}
+        onStartTyping={startTyping}
+        onStopTyping={stopTyping}
+        reactions={reactions}
+        onlineUsers={onlineUsers}
+        onEditMessage={editMessage}
+        onDeleteMessage={deleteMessage}
+        onToggleReaction={toggleReaction}
+      />
+    );
+  };
+
   return (
     <div 
       className="min-h-screen bg-background flex"
@@ -75,21 +114,9 @@ const Index = () => {
         onLogout={signOut}
       />
       
+      {/* Main Content - Dynamic based on room type */}
       <div className="flex-1 flex flex-col">
-        <ChatRoom
-          channel={adaptedActiveChannel}
-          currentUser={currentUser}
-          messages={adaptedMessages}
-          onSendMessage={sendMessage}
-          typingUsers={typingUsers}
-          onStartTyping={startTyping}
-          onStopTyping={stopTyping}
-          reactions={reactions}
-          onlineUsers={onlineUsers}
-          onEditMessage={editMessage}
-          onDeleteMessage={deleteMessage}
-          onToggleReaction={toggleReaction}
-        />
+        {renderMainContent()}
       </div>
     </div>
   );
