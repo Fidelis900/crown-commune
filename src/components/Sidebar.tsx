@@ -17,6 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
+import { PetitionsModal } from "./PetitionsModal";
+import { SettingsModal } from "./SettingsModal";
 
 interface SidebarProps {
   currentUser: User;
@@ -36,6 +38,8 @@ export function Sidebar({
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isPetitionsOpen, setIsPetitionsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const handleChannelSelect = (channelId: string) => {
     onChannelSelect(channelId);
@@ -356,6 +360,7 @@ export function Sidebar({
             isCollapsed ? "justify-center p-2" : "justify-start"
           )}
           size="sm"
+          onClick={() => setIsPetitionsOpen(true)}
           title={isCollapsed ? "Petitions" : undefined}
         >
           <Scroll className="w-4 h-4" />
@@ -369,6 +374,7 @@ export function Sidebar({
             isCollapsed ? "justify-center p-2" : "justify-start"
           )}
           size="sm"
+          onClick={() => setIsSettingsOpen(true)}
           title={isCollapsed ? "Settings" : undefined}
         >
           <Settings className="w-4 h-4" />
@@ -431,11 +437,22 @@ export function Sidebar({
   }
   
   return (
-    <div className={cn(
-      "hidden md:block transition-all duration-300",
-      isCollapsed ? "w-16" : "w-80"
-    )}>
-      {sidebarContent}
-    </div>
+    <>
+      <div className={cn(
+        "hidden md:block transition-all duration-300",
+        isCollapsed ? "w-16" : "w-80"
+      )}>
+        {sidebarContent}
+      </div>
+      
+      <PetitionsModal 
+        isOpen={isPetitionsOpen} 
+        onClose={() => setIsPetitionsOpen(false)} 
+      />
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
+    </>
   );
 }
