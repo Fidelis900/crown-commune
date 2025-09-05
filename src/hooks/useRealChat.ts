@@ -102,17 +102,34 @@ export const useRealChat = (userId: string | undefined) => {
     fetchChannels();
   }, []);
 
-  // Fetch messages for active channel
+  // Fetch messages for active channel with optimizations
   useEffect(() => {
     if (!activeChannelId) return;
 
     const fetchMessages = async () => {
-      // First, get messages
+      // Fetch only recent messages (last 50) with joined profiles for better performance
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select('*')
+        .select(`
+          id,
+          channel_id,
+          user_id,
+          content,
+          is_decree,
+          created_at,
+          edited_at,
+          is_deleted,
+          reply_to_id,
+          profiles:user_id (
+            user_id,
+            username,
+            rank,
+            is_vip
+          )
+        `)
         .eq('channel_id', activeChannelId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (messagesError) {
         console.error('Error fetching messages:', messagesError);
@@ -120,34 +137,20 @@ export const useRealChat = (userId: string | undefined) => {
         return;
       }
 
-      // Then, get unique user IDs and fetch their profiles
-      const userIds = [...new Set(messagesData?.map(msg => msg.user_id) || [])];
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, username, rank, is_vip')
-        .in('user_id', userIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        toast.error('Failed to load user profiles');
-        return;
-      }
-
-      // Merge messages with profile data
-      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
-      const messagesWithProfiles = messagesData?.map(message => ({
+      // Reverse to show oldest first and map profiles correctly
+      const messagesWithProfiles = (messagesData || []).reverse().map(message => ({
         ...message,
-        profiles: profilesMap.get(message.user_id)
-      })) || [];
+        profiles: message.profiles as any
+      }));
 
       setMessages(messagesWithProfiles);
     };
 
     fetchMessages();
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates with optimized profile handling
     const channel = supabase
-      .channel('messages')
+      .channel(`messages_${activeChannelId}`)
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
@@ -155,25 +158,41 @@ export const useRealChat = (userId: string | undefined) => {
           table: 'messages',
           filter: `channel_id=eq.${activeChannelId}`
         }, 
-        (payload) => {
-          // Fetch the profile for the new message
-          supabase
-            .from('profiles')
-            .select('user_id, username, rank, is_vip')
-            .eq('user_id', payload.new.user_id)
-            .single()
-            .then(({ data: profileData }) => {
-              const messageWithProfile: Message = {
-                id: payload.new.id,
-                channel_id: payload.new.channel_id,
-                user_id: payload.new.user_id,
-                content: payload.new.content,
-                is_decree: payload.new.is_decree,
-                created_at: payload.new.created_at,
-                profiles: profileData || undefined
-              };
-              setMessages(prev => [...prev, messageWithProfile]);
-            });
+        async (payload) => {
+          // Try to get profile from cache first (existing messages)
+          const existingProfile = messages.find(m => m.user_id === payload.new.user_id)?.profiles;
+          
+          if (existingProfile) {
+            // Use cached profile for better performance
+            const messageWithProfile: Message = {
+              id: payload.new.id,
+              channel_id: payload.new.channel_id,
+              user_id: payload.new.user_id,
+              content: payload.new.content,
+              is_decree: payload.new.is_decree,
+              created_at: payload.new.created_at,
+              profiles: existingProfile
+            };
+            setMessages(prev => [...prev, messageWithProfile]);
+          } else {
+            // Fetch profile only if not in cache
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('user_id, username, rank, is_vip')
+              .eq('user_id', payload.new.user_id)
+              .single();
+
+            const messageWithProfile: Message = {
+              id: payload.new.id,
+              channel_id: payload.new.channel_id,
+              user_id: payload.new.user_id,
+              content: payload.new.content,
+              is_decree: payload.new.is_decree,
+              created_at: payload.new.created_at,
+              profiles: profileData || undefined
+            };
+            setMessages(prev => [...prev, messageWithProfile]);
+          }
         }
       )
       .subscribe();
